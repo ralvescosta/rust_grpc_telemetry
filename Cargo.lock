@@ -543,6 +543,7 @@ dependencies = [
  "opentelemetry-semantic-conventions",
  "thiserror",
  "thrift",
+ "tokio",
 ]
 
 [[package]]
@@ -815,6 +816,7 @@ version = "0.1.0"
 dependencies = [
  "opentelemetry",
  "opentelemetry-jaeger",
+ "prost",
  "tokio",
  "tonic",
  "tonic-build",
