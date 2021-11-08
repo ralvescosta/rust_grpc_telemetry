@@ -8,6 +8,10 @@ name = "grpc-first-server"
 path = "src/grpc_first_server.rs"
 
 [[bin]]
+name = "grpc-second-server"
+path = "src/grpc_second_server.rs"
+
+[[bin]]
 name = "grpc-client"
 path = "src/grpc_client.rs"
 
