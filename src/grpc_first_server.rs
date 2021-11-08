@@ -1,4 +1,4 @@
-use opentelemetry::propagation::Extractor;
+use opentelemetry::propagation::{Extractor, Injector};
 use opentelemetry::{global, sdk::propagation::TraceContextPropagator};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
@@ -11,7 +11,7 @@ pub mod hello_world {
 }
 
 use hello_world::greeter_server::{Greeter, GreeterServer};
-use hello_world::{HelloReply, HelloRequest};
+use hello_world::{greeter_client::GreeterClient, HelloReply, HelloRequest};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,8 +36,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-struct MetadataMap<'a>(&'a tonic::metadata::MetadataMap);
-impl<'a> Extractor for MetadataMap<'a> {
+struct MetadataMap<'a>(&'a mut tonic::metadata::MetadataMap);
+impl<'a> Injector for MetadataMap<'a> {
+    /// Set a key and value in the MetadataMap.  Does nothing if the key or value are not valid inputs
+    fn set(&mut self, key: &str, value: String) {
+        if let Ok(key) = tonic::metadata::MetadataKey::from_bytes(key.as_bytes()) {
+            if let Ok(val) = tonic::metadata::MetadataValue::from_str(&value) {
+                self.0.insert(key, val);
+            }
+        }
+    }
+}
+
+struct ExMetadataMap<'a>(&'a tonic::metadata::MetadataMap);
+impl<'a> Extractor for ExMetadataMap<'a> {
     /// Get a value for a key from the MetadataMap.  If the value can't be converted to &str, returns None
     fn get(&self, key: &str) -> Option<&str> {
         self.0.get(key).and_then(|metadata| metadata.to_str().ok())
@@ -65,17 +77,33 @@ impl Greeter for MyGreeter {
         &self,
         request: Request<HelloRequest>, // Accept request of type HelloRequest
     ) -> Result<Response<HelloReply>, Status> {
-        let parent_cx =
-            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        let parent_cx = global::get_text_map_propagator(|prop| {
+            prop.extract(&ExMetadataMap(request.metadata()))
+        });
         tracing::Span::current().set_parent(parent_cx);
 
-        let name = request.into_inner().name;
+        let mut client = GreeterClient::connect("http://[::1]:50052")
+            .instrument(info_span!("second client connect"))
+            .await
+            .unwrap();
 
-        // Return an instance of type HelloReply
-        let reply = hello_world::HelloReply {
-            message: format!("Hello {}!", name), // We must use .into_inner() as the fields of gRPC requests and responses are private
-        };
+        let mut request = tonic::Request::new(HelloRequest {
+            name: "Tonic".into(),
+        });
 
-        Ok(Response::new(reply)) // Send back our formatted greeting
+        global::get_text_map_propagator(|propagator| {
+            propagator.inject_context(
+                &tracing::Span::current().context(),
+                &mut MetadataMap(request.metadata_mut()),
+            )
+        });
+
+        let response = client
+            .say_hello(request)
+            .instrument(tracing::Span::current())
+            .await?;
+
+        println!("[FIRST SERVER] - Response received: {:?}", response);
+        Ok(response)
     }
 }
