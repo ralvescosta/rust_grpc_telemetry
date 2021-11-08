@@ -77,7 +77,7 @@ impl Greeter for MyGreeter {
             message: format!("Hello {}!", name), // We must use .into_inner() as the fields of gRPC requests and responses are private
         };
 
-        println!("[SECOND SERVER] - Send response");
+        log::info!("[SECOND SERVER] - Send response");
 
         Ok(Response::new(reply)) // Send back our formatted greeting
     }
@@ -86,5 +86,5 @@ impl Greeter for MyGreeter {
 #[instrument]
 fn expensive_fn(to_print: String) {
     std::thread::sleep(std::time::Duration::from_millis(20));
-    info!("{}", to_print);
+    log::info!("{}", to_print);
 }

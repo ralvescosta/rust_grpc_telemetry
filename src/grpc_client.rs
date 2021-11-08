@@ -1,5 +1,6 @@
+use log;
 use opentelemetry::{global, propagation::Injector, sdk::propagation::TraceContextPropagator};
-use tracing::{info, info_span, instrument};
+use tracing::{info_span, instrument};
 use tracing_futures::Instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 use tracing_subscriber::prelude::*;
@@ -42,6 +43,7 @@ impl<'a> Injector for MetadataMap<'a> {
 
 #[instrument]
 async fn greet() -> Result<(), Box<dyn std::error::Error>> {
+    log::warn!("[greet]");
     let mut client = GreeterClient::connect("http://[::1]:50051")
         .instrument(info_span!("first client connect"))
         .await?;
@@ -56,6 +58,8 @@ async fn greet() -> Result<(), Box<dyn std::error::Error>> {
             &mut MetadataMap(request.metadata_mut()),
         )
     });
+
+    log::warn!("[greet] do request");
 
     let response = client
         .say_hello(request)

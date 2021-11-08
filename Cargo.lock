@@ -814,6 +814,7 @@ dependencies = [
 name = "rust_telemetry"
 version = "0.1.0"
 dependencies = [
+ "log",
  "opentelemetry",
  "opentelemetry-jaeger",
  "prost",
