@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with(tracing_opentelemetry::layer().with_tracer(tracer))
         .try_init()?;
 
-    greet().await;
+    greet().await?;
 
     global::shutdown_tracer_provider();
     Ok(())
@@ -41,9 +41,9 @@ impl<'a> Injector for MetadataMap<'a> {
 }
 
 #[instrument]
-async fn greet() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+async fn greet() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = GreeterClient::connect("http://[::1]:50051")
-        .instrument(info_span!("client connect"))
+        .instrument(info_span!("first client connect"))
         .await?;
 
     let mut request = tonic::Request::new(HelloRequest {
@@ -59,9 +59,9 @@ async fn greet() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static
 
     let response = client
         .say_hello(request)
-        .instrument(info_span!("say_hello"))
+        .instrument(tracing::Span::current())
         .await?;
 
-    info!("Response received: {:?}", response);
+    println!("[CLIENT] - Response received: {:?}", response);
     Ok(())
 }
