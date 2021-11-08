@@ -1,4 +1,3 @@
-# Rust Telemetry using Open Telemetry Crate
-
+# Rust GRPC Telemetry using Open Telemetry Crate
 
 <img src="./docs/1.png" />
