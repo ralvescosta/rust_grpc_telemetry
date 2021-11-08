@@ -70,6 +70,7 @@ impl Greeter for MyGreeter {
         tracing::Span::current().set_parent(parent_cx);
 
         let name = request.into_inner().name;
+        expensive_fn(format!("Got name: {:?}", name));
 
         // Return an instance of type HelloReply
         let reply = hello_world::HelloReply {
@@ -80,4 +81,10 @@ impl Greeter for MyGreeter {
 
         Ok(Response::new(reply)) // Send back our formatted greeting
     }
+}
+
+#[instrument]
+fn expensive_fn(to_print: String) {
+    std::thread::sleep(std::time::Duration::from_millis(20));
+    info!("{}", to_print);
 }
