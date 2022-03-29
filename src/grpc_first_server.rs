@@ -3,6 +3,7 @@ use opentelemetry::{global, sdk::propagation::TraceContextPropagator};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 use tracing::*;
+use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 use tracing_subscriber::prelude::*;
 
@@ -20,9 +21,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_service_name("grpc-first-server")
         .install_batch(opentelemetry::runtime::Tokio)?;
 
+    let formatting_layer = BunyanFormattingLayer::new(String::from("info"), std::io::stdout);
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new("INFO"))
         .with(tracing_opentelemetry::layer().with_tracer(tracer))
+        .with(JsonStorageLayer)
+        .with(formatting_layer)
         .try_init()?;
 
     let addr = "[::1]:50051".parse()?;

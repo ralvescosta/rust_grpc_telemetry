@@ -26,6 +26,8 @@ tracing-subscriber = { version = "0.3.1", features = [ "env-filter" ] }
 tracing-opentelemetry = { version = "0.16.0" }
 tracing-futures = { version = "0.2.5" }
 log = { versin = "0.4.14" }
+tracing-log = { version = "0.1.2" }
+tracing-bunyan-formatter = { version = "0.3.0" }
 
 [build-dependencies]
 tonic-build = { version = "0.6.0" }

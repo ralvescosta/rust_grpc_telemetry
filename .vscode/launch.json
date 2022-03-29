@@ -1,0 +1,59 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'grpc-first-server'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=grpc-first-server",
+          "--package=rust_telemetry"
+        ],
+        "filter": {
+          "name": "grpc-first-server",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'grpc-second-server'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=grpc-second-server",
+          "--package=rust_telemetry"
+        ],
+        "filter": {
+          "name": "grpc-second-server",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'grpc-client'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=grpc-client",
+          "--package=rust_telemetry"
+        ],
+        "filter": {
+          "name": "grpc-client",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
